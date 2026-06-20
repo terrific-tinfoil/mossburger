@@ -49,26 +49,23 @@
 
         h2, h3 {
             text-align: center;
-            color: var(--text-main);
             margin-top: 0;
             margin-bottom: 24px;
             font-weight: 600;
             letter-spacing: -0.025em;
-        }
-
-        h2 {
-            font-size: 22px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 12px;
-        }
-
-        h3 {
             font-size: 20px;
             color: var(--text-muted);
         }
 
+        /* Added specific border treatment under the left header to separate it cleanly from the inputs */
+        .calculator-container h2 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
         .form-group {
             margin-bottom: 24px;
+            margin-top: 8px;
         }
 
         label {
@@ -218,7 +215,7 @@
 
 <div class="main-container">
     <div class="calculator-container">
-        <h2>Mossburger Crew Rating Calculator</h2>
+        <h2>crew rating calculator</h2>
         
         <div class="form-group">
             <label for="joinDate">Enter Join Date</label>
