@@ -257,7 +257,7 @@
             
             <div class="time-box" style="border-top: 1px solid var(--border-color); padding-top: 16px;">
                 <label>Reset Time in UTC</label>
-                <span>23:00 UTC</span>
+                <span>24:00 UTC</span>
             </div>
         </div>
     </div>
@@ -267,17 +267,17 @@
     function getNextResetTarget() {
         const now = new Date();
         
-        // 7:00 PM CDT is exactly 23:00 UTC
+        // 24:00 UTC is evaluated as hour 24, which JS translates safely as 00:00 of the next UTC day
         const targetUTC = Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth(),
             now.getUTCDate(),
-            23, 0, 0, 0
+            24, 0, 0, 0
         );
         
         let targetDate = new Date(targetUTC);
         
-        // If 23:00 UTC has already passed today, target tomorrow
+        // If 24:00 UTC has already run through today, advance to the next target
         if (now >= targetDate) {
             targetDate.setUTCDate(targetDate.getUTCDate() + 1);
         }
