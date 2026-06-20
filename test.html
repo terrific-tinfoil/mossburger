@@ -151,34 +151,29 @@
         <div class="timer-display" id="countdownTimer">00h 00m 00s</div>
         
         <div class="timezone-info">
-            <strong>Your Local Reset Time:</strong><br>
-            <span id="localResetTime">Loading...</span>
+            <strong>Reset Time in UTC:</strong><br>
+            <span id="utcResetTime">23:00 UTC</span>
             <br><br>
-            <small style="color: #888;">Resets daily at 7:00 PM CST.<br>Weeklies reset on Mondays.</small>
+            <small style="color: #888;">Resets daily at 7:00 PM CDT.<br>Weeklies reset on Mondays.</small>
         </div>
     </div>
 </div>
 
 <script>
-    // Target reset time is 19:00 (7 PM) Central Standard Time (UTC-6)
-    // Note: If tracking Central Daylight Time (CDT), change the offset to -5
-    const CST_OFFSET_HOURS = -6; 
-
     function getNextResetTarget() {
         const now = new Date();
         
-        // Create a date object forced to the current day's target time in UTC
-        // 19 hours minus the CST offset (-6) equals 25 UTC (which rolls over automatically)
-        const targetTargetUTC = Date.UTC(
+        // 7:00 PM CDT is exactly 23:00 UTC (11:00 PM UTC)
+        const targetUTC = Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth(),
             now.getUTCDate(),
-            19 - CST_OFFSET_HOURS, 0, 0, 0
+            23, 0, 0, 0
         );
         
-        let targetDate = new Date(targetTargetUTC);
+        let targetDate = new Date(targetUTC);
         
-        // If 7 PM CST has already passed today, target 7 PM CST tomorrow
+        // If 23:00 UTC has already passed today, target 23:00 UTC tomorrow
         if (now >= targetDate) {
             targetDate.setUTCDate(targetDate.getUTCDate() + 1);
         }
@@ -195,26 +190,11 @@
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // Format numbers to always show two digits
         const hDisplay = String(hours).padStart(2, '0');
         const mDisplay = String(minutes).padStart(2, '0');
         const sDisplay = String(seconds).padStart(2, '0');
 
         document.getElementById('countdownTimer').innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
-    }
-
-    function displayLocalResetTime() {
-        // Calculate what 7:00 PM CST looks like today in the user's local system browser formatting
-        const target = getNextResetTarget();
-        
-        const options = { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            timeZoneName: 'short' 
-        };
-        
-        const localTimeString = target.toLocaleTimeString(undefined, options);
-        document.getElementById('localResetTime').innerText = localTimeString;
     }
 
     function calculatePoints() {
@@ -255,8 +235,7 @@
         document.getElementById('resultsSection').style.display = 'block';
     }
 
-    // Initialize and run the countdown loop
-    displayLocalResetTime();
+    // Initialize and run countdown loop
     updateCountdown();
     setInterval(updateCountdown, 1000);
 </script>
