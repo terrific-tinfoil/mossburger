@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mossburger Crew Rating Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 750px;
+            width: 100%;
+        }
+        .calculator-container, .sidebar-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #444;
+        }
+        .total-points {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 15px;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+        .timer-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #dc3545;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        .timezone-info {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        /* Responsive layout for smaller screens */
+        @media (max-width: 680px) {
+            .main-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="calculator-container">
+        <h2>Mossburger Crew Rating Calculator</h2>
+        
+        <div class="form-group">
+            <label for="joinDate">Enter Join Date:</label>
+            <input type="date" id="joinDate">
+        </div>
+        
+        <button onclick="calculatePoints()">Calculate Required Points</button>
+        
+        <div class="results" id="resultsSection" style="display: none;">
+            <div class="result-item">
+                <span>Total Days Tracked:</span>
+                <span id="daysCount">0</span>
+            </div>
+            <div class="result-item">
+                <span>Daily Quest Points (135/day):</span>
+                <span id="dailyPoints">0</span>
+            </div>
+            <div class="result-item">
+                <span>Weekly Quest Points (450/week):</span>
+                <span id="weeklyPoints">0</span>
+            </div>
+            <div class="result-item total-points">
+                <span>Total Expected Points:</span>
+                <span id="totalPoints">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-container">
+        <h3>Quest Reset Tracker</h3>
+        
+        <label style="text-align: center;">Next Quest Reset In:</label>
+        <div class="timer-display" id="countdownTimer">00h 00m 00s</div>
+        
+        <div class="timezone-info">
+            <strong>Your Local Reset Time:</strong><br>
+            <span id="localResetTime">Loading...</span>
+            <br><br>
+            <small style="color: #888;">Resets daily at 7:00 PM CST.<br>Weeklies reset on Mondays.</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Target reset time is 19:00 (7 PM) Central Standard Time (UTC-6)
+    // Note: If tracking Central Daylight Time (CDT), change the offset to -5
+    const CST_OFFSET_HOURS = -6; 
+
+    function getNextResetTarget() {
+        const now = new Date();
+        
+        // Create a date object forced to the current day's target time in UTC
+        // 19 hours minus the CST offset (-6) equals 25 UTC (which rolls over automatically)
+        const targetTargetUTC = Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            19 - CST_OFFSET_HOURS, 0, 0, 0
+        );
+        
+        let targetDate = new Date(targetTargetUTC);
+        
+        // If 7 PM CST has already passed today, target 7 PM CST tomorrow
+        if (now >= targetDate) {
+            targetDate.setUTCDate(targetDate.getUTCDate() + 1);
+        }
+        
+        return targetDate;
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        const target = getNextResetTarget();
+        const diff = target - now;
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        // Format numbers to always show two digits
+        const hDisplay = String(hours).padStart(2, '0');
+        const mDisplay = String(minutes).padStart(2, '0');
+        const sDisplay = String(seconds).padStart(2, '0');
+
+        document.getElementById('countdownTimer').innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
+    }
+
+    function displayLocalResetTime() {
+        // Calculate what 7:00 PM CST looks like today in the user's local system browser formatting
+        const target = getNextResetTarget();
+        
+        const options = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZoneName: 'short' 
+        };
+        
+        const localTimeString = target.toLocaleTimeString(undefined, options);
+        document.getElementById('localResetTime').innerText = localTimeString;
+    }
+
+    function calculatePoints() {
+        const joinDateInput = document.getElementById('joinDate').value;
+        
+        if (!joinDateInput) {
+            alert("Please select a valid join date.");
+            return;
+        }
+
+        const joinDate = new Date(joinDateInput);
+        joinDate.setHours(12, 0, 0, 0);
+        
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+
+        if (joinDate > today) {
+            alert("Join date cannot be in the future.");
+            return;
+        }
+
+        const timeDiff = today.getTime() - joinDate.getTime();
+        const daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const weeksPassed = Math.floor(daysPassed / 7);
+
+        const pointsPerDay = 9 * 15; 
+        const pointsPerWeek = 9 * 50;
+
+        const calculatedDailyPoints = daysPassed * pointsPerDay;
+        const calculatedWeeklyPoints = weeksPassed * pointsPerWeek;
+        const totalPointsRequired = calculatedDailyPoints + calculatedWeeklyPoints;
+
+        document.getElementById('daysCount').innerText = daysPassed;
+        document.getElementById('dailyPoints').innerText = calculatedDailyPoints.toLocaleString();
+        document.getElementById('weeklyPoints').innerText = calculatedWeeklyPoints.toLocaleString();
+        document.getElementById('totalPoints').innerText = totalPointsRequired.toLocaleString();
+        
+        document.getElementById('resultsSection').style.display = 'block';
+    }
+
+    // Initialize and run the countdown loop
+    displayLocalResetTime();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>
