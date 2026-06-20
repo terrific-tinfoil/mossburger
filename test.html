@@ -95,13 +95,19 @@
         }
         .timezone-info {
             font-size: 14px;
-            color: #666;
+            color: #444;
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.6;
             background: #f8f9fa;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
             border-left: 4px solid #007bff;
+        }
+        .time-box {
+            margin-bottom: 12px;
+        }
+        .time-box strong {
+            color: #333;
         }
         /* Responsive layout for smaller screens */
         @media (max-width: 680px) {
@@ -151,10 +157,19 @@
         <div class="timer-display" id="countdownTimer">00h 00m 00s</div>
         
         <div class="timezone-info">
-            <strong>Reset Time in UTC:</strong><br>
-            <span id="utcResetTime">23:00 UTC</span>
-            <br><br>
-            <small style="color: #888;">Resets daily at 7:00 PM CDT.<br>Weeklies reset on Mondays.</small>
+            <div class="time-box">
+                <strong>Your Local Reset Time:</strong><br>
+                <span id="localResetTime">Loading...</span>
+            </div>
+            
+            <div class="time-box" style="border-top: 1px solid #ddd; padding-top: 10px;">
+                <strong>Reset Time in UTC:</strong><br>
+                <span>23:00 UTC</span>
+            </div>
+            
+            <small style="color: #888; display: block; margin-top: 15px;">
+                Resets daily at 7:00 PM CDT.<br>Weeklies reset on Mondays.
+            </small>
         </div>
     </div>
 </div>
@@ -163,7 +178,7 @@
     function getNextResetTarget() {
         const now = new Date();
         
-        // 7:00 PM CDT is exactly 23:00 UTC (11:00 PM UTC)
+        // 7:00 PM CDT is exactly 23:00 UTC
         const targetUTC = Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth(),
@@ -173,7 +188,7 @@
         
         let targetDate = new Date(targetUTC);
         
-        // If 23:00 UTC has already passed today, target 23:00 UTC tomorrow
+        // If 23:00 UTC has already passed today, target tomorrow
         if (now >= targetDate) {
             targetDate.setUTCDate(targetDate.getUTCDate() + 1);
         }
@@ -195,6 +210,18 @@
         const sDisplay = String(seconds).padStart(2, '0');
 
         document.getElementById('countdownTimer').innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
+    }
+
+    function displayLocalResetTime() {
+        const target = getNextResetTarget();
+        const options = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZoneName: 'short' 
+        };
+        // Formats the 23:00 UTC date target into the user's local browser timezone settings
+        const localTimeString = target.toLocaleTimeString(undefined, options);
+        document.getElementById('localResetTime').innerText = localTimeString;
     }
 
     function calculatePoints() {
@@ -235,7 +262,8 @@
         document.getElementById('resultsSection').style.display = 'block';
     }
 
-    // Initialize and run countdown loop
+    // Initialize and run loops
+    displayLocalResetTime();
     updateCountdown();
     setInterval(updateCountdown, 1000);
 </script>
