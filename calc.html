@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mossburger Crew Rating Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #444;
+        }
+        .total-points {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 15px;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <h2>Mossburger Crew Rating Calculator</h2>
+    
+    <div class="form-group">
+        <label for="joinDate">Enter Join Date:</label>
+        <input type="date" id="joinDate">
+    </div>
+    
+    <button onclick="calculatePoints()">Calculate Required Points</button>
+    
+    <div class="results" id="resultsSection" style="display: none;">
+        <div class="result-item">
+            <span>Total Days Tracked:</span>
+            <span id="daysCount">0</span>
+        </div>
+        <div class="result-item">
+            <span>Daily Quest Points (135/day):</span>
+            <span id="dailyPoints">0</span>
+        </div>
+        <div class="result-item">
+            <span>Weekly Quest Points (450/week):</span>
+            <span id="weeklyPoints">0</span>
+        </div>
+        <div class="result-item total-points">
+            <span>Total Expected Points:</span>
+            <span id="totalPoints">0</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculatePoints() {
+        const joinDateInput = document.getElementById('joinDate').value;
+        
+        if (!joinDateInput) {
+            alert("Please select a valid join date.");
+            return;
+        }
+
+        // Parse dates (setting hours to noon to avoid daylight saving time glitches)
+        const joinDate = new Date(joinDateInput);
+        joinDate.setHours(12, 0, 0, 0);
+        
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+
+        // Check if the date is in the future
+        if (joinDate > today) {
+            alert("Join date cannot be in the future.");
+            return;
+        }
+
+        // Calculate time difference in milliseconds and convert to days
+        const timeDiff = today.getTime() - joinDate.getTime();
+        const daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        
+        // Calculate the number of full weeks passed
+        const weeksPassed = Math.floor(daysPassed / 7);
+
+        // Math based on rules:
+        // Daily: 9 quests * 15 points = 135 points per day
+        // Weekly: 9 quests * 50 points = 450 points per week
+        const pointsPerDay = 9 * 15; 
+        const pointsPerWeek = 9 * 50;
+
+        const calculatedDailyPoints = daysPassed * pointsPerDay;
+        const calculatedWeeklyPoints = weeksPassed * pointsPerWeek;
+        const totalPointsRequired = calculatedDailyPoints + calculatedWeeklyPoints;
+
+        // Display the results
+        document.getElementById('daysCount').innerText = daysPassed;
+        document.getElementById('dailyPoints').innerText = calculatedDailyPoints.toLocaleString();
+        document.getElementById('weeklyPoints').innerText = calculatedWeeklyPoints.toLocaleString();
+        document.getElementById('totalPoints').innerText = totalPointsRequired.toLocaleString();
+        
+        // Make results section visible
+        document.getElementById('resultsSection').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
