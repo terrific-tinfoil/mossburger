@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mossburger Crew Rating Calculator</title>
+    <style>
+        :root {
+            /* Text & Accent colors adjusted for light frosted glass readability */
+            --text-main: #0f172a;
+            --text-muted: #334155;
+            --accent-green: #15803d;
+            --accent-glow: rgba(21, 128, 61, 0.25);
+            --accent-red: #b91c1c;
+            --border-color: rgba(255, 255, 255, 0.35);
+            
+            /* Translucent white iPhone menu-style opacity (45%) */
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-input-bg: rgba(255, 255, 255, 0.35);
+        }
+
+        body {
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            /* Your custom underwater Unsplash background */
+            background: url('https://images.unsplash.com/photo-1501696461415-6bd6660c6742?q=80&w=1200&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 24px;
+            max-width: 850px;
+            width: 100%;
+        }
+
+        .calculator-container, .sidebar-container {
+            background-color: var(--glass-bg);
+            /* Frosted glass blur effect */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); 
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            font-size: 20px;
+            color: var(--text-main);
+        }
+
+        .calculator-container h2 {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            margin-top: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--glass-input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: inherit;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-color: #0284c7;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #0284c7; 
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #0369a1;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .results {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.2);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 600; 
+        }
+
+        .result-item span:last-child {
+            font-family: system-ui, sans-serif;
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .total-points {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.15);
+            padding-top: 16px;
+        }
+
+        .total-points span:first-child {
+            color: var(--text-main);
+        }
+
+        .total-points span:last-child {
+            font-size: 24px;
+            color: var(--accent-green);
+            text-shadow: 0 1px 2px rgba(255,255,255,0.4);
+        }
+
+        .timer-label {
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .timer-display {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--accent-red);
+            margin: 16px 0 28px 0;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .timezone-info {
+            background: var(--glass-input-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .time-box {
+            text-align: center;
+        }
+
+        .time-box span {
+            font-size: 18px;
+            color: var(--text-main);
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        /* Responsive layout for mobile devices */
+        @media (max-width: 720px) {
+            .main-container {
+                flex-direction: column;
+            }
+            body {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="calculator-container">
+        <h2>Crew Rating Calculator</h2>
+        
+        <div class="form-group">
+            <label for="joinDate">Enter Join Date</label>
+            <input type="date" id="joinDate">
+        </div>
+        
+        <button onclick="calculatePoints()">Calculate Required Points</button>
+        
+        <div class="results" id="resultsSection" style="display: none;">
+            <div class="result-item">
+                <span>Total Days Tracked:</span>
+                <span id="daysCount">0</span>
+            </div>
+            <div class="result-item">
+                <span>Daily Quest Points (135/day):</span>
+                <span id="dailyPoints">0</span>
+            </div>
+            <div class="result-item">
+                <span>Weekly Quest Points (450/week):</span>
+                <span id="weeklyPoints">0</span>
+            </div>
+            <div class="result-item total-points">
+                <span>Total Expected Points:</span>
+                <span id="totalPoints">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-container">
+        <h3>Quest Reset Tracker</h3>
+        
+        <div class="timer-label">Next Quest Reset In</div>
+        <div class="timer-display" id="countdownTimer">00h 00m 00s</div>
+        
+        <div class="timezone-info">
+            <div class="time-box">
+                <label>Your Local Reset Time</label>
+                <span id="localResetTime">Loading...</span>
+            </div>
+            
+            <div class="time-box" style="border-top: 1px solid rgba(0, 0, 0, 0.15); padding-top: 16px;">
+                <label>Reset Time in UTC</label>
+                <span>24:00 UTC</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getNextResetTarget() {
+        const now = new Date();
+        
+        // 24:00 UTC translates to 00:00 of the next UTC day
+        const targetUTC = Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            24, 0, 0, 0
+        );
+        
+        let targetDate = new Date(targetUTC);
+        
+        if (now >= targetDate) {
+            targetDate.setUTCDate(targetDate.getUTCDate() + 1);
+        }
+        
+        return targetDate;
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        const target = getNextResetTarget();
+        const diff = target - now;
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const hDisplay = String(hours).padStart(2, '0');
+        const mDisplay = String(minutes).padStart(2, '0');
+        const sDisplay = String(seconds).padStart(2, '0');
+
+        document.getElementById('countdownTimer').innerText = `${hDisplay}h ${mDisplay}m ${sDisplay}s`;
+    }
+
+    function displayLocalResetTime() {
+        const target = getNextResetTarget();
+        const options = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZoneName: 'short' 
+        };
+        const localTimeString = target.toLocaleTimeString(undefined, options);
+        document.getElementById('localResetTime').innerText = localTimeString;
+    }
+
+    function calculatePoints() {
+        const joinDateInput = document.getElementById('joinDate').value;
+        
+        if (!joinDateInput) {
+            alert("Please select a valid join date.");
+            return;
+        }
+
+        const joinDate = new Date(joinDateInput);
+        joinDate.setHours(12, 0, 0, 0);
+        
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+
+        if (joinDate > today) {
+            alert("Join date cannot be in the future.");
+            return;
+        }
+
+        const timeDiff = today.getTime() - joinDate.getTime();
+        const daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const weeksPassed = Math.floor(daysPassed / 7);
+
+        const pointsPerDay = 9 * 15; 
+        const pointsPerWeek = 9 * 50;
+
+        const calculatedDailyPoints = daysPassed * pointsPerDay;
+        const calculatedWeeklyPoints = weeksPassed * pointsPerWeek;
+        const totalPointsRequired = calculatedDailyPoints + calculatedWeeklyPoints;
+
+        document.getElementById('daysCount').innerText = daysPassed;
+        document.getElementById('dailyPoints').innerText = calculatedDailyPoints.toLocaleString();
+        document.getElementById('weeklyPoints').innerText = calculatedWeeklyPoints.toLocaleString();
+        document.getElementById('totalPoints').innerText = totalPointsRequired.toLocaleString();
+        
+        document.getElementById('resultsSection').style.display = 'block';
+    }
+
+    // Run loops
+    displayLocalResetTime();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>
