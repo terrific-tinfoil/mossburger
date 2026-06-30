@@ -322,6 +322,18 @@
         document.getElementById('localResetTime').innerText = localTimeString;
     }
 
+    // Helper to find the start of a given week (Monday)
+    function getStartOfWeekMonday(date) {
+        const result = new Date(date);
+        const day = result.getDay();
+        // Adjust Sunday (0) to be 7, so Monday becomes 1, Tuesday 2, etc.
+        const dayAdjusted = day === 0 ? 7 : day;
+        // Subtract days to roll back to Monday
+        result.setDate(result.getDate() - (dayAdjusted - 1));
+        result.setHours(0, 0, 0, 0);
+        return result;
+    }
+
     function calculatePoints() {
         const joinDateInput = document.getElementById('joinDate').value;
         
@@ -330,28 +342,45 @@
             return;
         }
 
-        const joinDate = new Date(joinDateInput);
-        joinDate.setHours(12, 0, 0, 0);
-        
+        // Use local midnights for standardized day comparisons
+        const joinDate = new Date(joinDateInput + 'T00:00:00');
         const today = new Date();
-        today.setHours(12, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
 
         if (joinDate > today) {
             alert("Join date cannot be in the future.");
             return;
         }
 
+        // --- 1. Daily Quests Logic ---
+        // Total calendar days passed between joinDate and today
         const timeDiff = today.getTime() - joinDate.getTime();
         const daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const weeksPassed = Math.floor(daysPassed / 7);
+        
+        // Exclude the join day itself: if they joined today, daysEligible is 0
+        const daysEligible = Math.max(0, daysPassed);
 
-        const pointsPerDay = 9 * 15; 
-        const pointsPerWeek = 9 * 50;
+        // --- 2. Weekly Quests Logic ---
+        // Get the Monday of the week they joined, and the Monday of the current week
+        const joinWeekMonday = getStartOfWeekMonday(joinDate);
+        const currentWeekMonday = getStartOfWeekMonday(today);
 
-        const calculatedDailyPoints = daysPassed * pointsPerDay;
-        const calculatedWeeklyPoints = weeksPassed * pointsPerWeek;
+        // Calculate weeks passed based strictly on Monday boundaries
+        const weekTimeDiff = currentWeekMonday.getTime() - joinWeekMonday.getTime();
+        const weeksPassed = Math.floor(weekTimeDiff / (1000 * 60 * 60 * 24 * 7));
+        
+        // Exclude the join week: only count weeks fully *after* the join week
+        const weeksEligible = Math.max(0, weeksPassed);
+
+        // --- 3. Point Multipliers ---
+        const pointsPerDay = 9 * 15;   // 135 points
+        const pointsPerWeek = 9 * 50; // 450 points
+
+        const calculatedDailyPoints = daysEligible * pointsPerDay;
+        const calculatedWeeklyPoints = weeksEligible * pointsPerWeek;
         const totalPointsRequired = calculatedDailyPoints + calculatedWeeklyPoints;
 
+        // --- 4. Update UI Elements ---
         document.getElementById('daysCount').innerText = daysPassed;
         document.getElementById('dailyPoints').innerText = calculatedDailyPoints.toLocaleString();
         document.getElementById('weeklyPoints').innerText = calculatedWeeklyPoints.toLocaleString();
